@@ -1,0 +1,107 @@
+<!-- sril/templates/sril/libros/lista_libros.html -->
+{% extends 'sril/base.html' %}
+
+{% block title %}Todos los Libros - SaberMas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">📚 Todos los Libros</h1>
+        
+        <!-- Filtros -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ request.GET.q }}">
+                    </div>
+                    <div class="col-md-4">
+                        <select name="categoria" class="form-select">
+                            <option value="">Todas las categorías</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}" 
+                                    {% if request.GET.categoria == categoria.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ categoria.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de libros -->
+        <div class="row">
+            {% for libro in libros %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card book-card h-100">
+                    <!-- Portada mini -->
+                    {% if libro.portada %}
+                        <img src="{{ libro.portada.url }}" class="card-img-top" alt="{{ libro.titulo }}" 
+                             style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 200px;">
+                            <span class="text-muted">📚</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ libro.titulo }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ libro.autor }}</h6>
+                        
+                        <!-- Categorías -->
+                        <div class="mb-2">
+                            {% for cat in libro.categorias.all %}
+                                <span class="badge bg-secondary me-1">{{ cat.nombre }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <p class="card-text small">
+                            <strong>Rating:</strong> 
+                            <span class="rating-stars">
+                                {% with rating=libro.rating_promedio %}
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= rating %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                                ({{ libro.rating_promedio }})
+                            </span>
+                        </p>
+                        
+                        <p class="card-text small text-muted">
+                            <strong>{{ libro.numero_paginas }}</strong> páginas<br>
+                            <strong>{{ libro.tiempo_lectura_promedio }}</strong> min aprox.
+                        </p>
+                        
+                        {% if libro.sinopsis %}
+                        <p class="card-text small">{{ libro.sinopsis|truncatewords:20 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{% url 'sril:detalle_libro' libro.id %}" class="btn btn-sm btn-primary">Ver Detalles</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'sril:puntuar_libro' libro.id %}" class="btn btn-sm btn-outline-secondary">Puntuar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <h4>No se encontraron libros</h4>
+                    <p>Intenta con otros términos de búsqueda o filtros.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

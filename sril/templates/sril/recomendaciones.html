@@ -1,0 +1,83 @@
+{% extends 'sril/base.html' %}
+
+{% block title %}Recomendaciones para ti - SaberMas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Recomendaciones para ti</h1>
+        <p class="lead">Libros seleccionados basados en tus preferencias e historial de lectura</p>
+        
+        {% if libros_recomendados %}
+        <div class="row">
+            {% for libro in libros_recomendados %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card book-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ libro.titulo }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ libro.autor }}</h6>
+                        
+                        <!-- Categorías -->
+                        <div class="mb-2">
+                            {% for cat in libro.categorias.all %}
+                                <span class="badge bg-primary me-1 small">{{ cat.nombre }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <p class="card-text small">
+                            <span class="rating-stars">
+                                {% with rating=libro.avg_rating|default:0 %}
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= rating %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                                ({{ libro.avg_rating|default:0|floatformat:1 }})
+                            </span>
+                        </p>
+                        
+                        <p class="card-text small text-muted">
+                            {{ libro.numero_paginas }} páginas<br>
+                            {{ libro.tiempo_lectura_promedio }} min
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{% url 'sril:detalle_libro' libro.id %}" class="btn btn-sm btn-primary">Ver Detalles</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'sril:puntuar_libro' libro.id %}" class="btn btn-sm btn-outline-secondary">Puntuar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <h4>¡Configura tus preferencias!</h4>
+            <p>Para obtener recomendaciones personalizadas, primero configura tus preferencias literarias.</p>
+            <a href="{% url 'sril:mis_preferencias' %}" class="btn btn-primary">Configurar Preferencias</a>
+            <a href="{% url 'sril:lista_libros' %}" class="btn btn-outline-primary">Explorar Todos los Libros</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Información sobre el sistema de recomendación -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5>¿Cómo funcionan nuestras recomendaciones?</h5>
+                <p class="mb-0">
+                    Nuestro sistema analiza tus preferencias de categorías, tu historial de lectura 
+                    y las puntuaciones que has dado a otros libros para sugerirte lecturas que 
+                    probablemente disfrutarás.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

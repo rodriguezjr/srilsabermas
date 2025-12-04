@@ -1,0 +1,128 @@
+{% extends 'sril/base.html' %}
+
+{% block title %}Registrar Lectura - {{ libro.titulo }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    {% if historial_existente %}
+                    ✏️ Actualizar Progreso de Lectura
+                    {% else %}
+                    📖 Registrar Lectura
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <!-- Información del libro -->
+                <div class="mb-4 p-3 bg-light rounded">
+                    <h4>{{ libro.titulo }}</h4>
+                    <p class="mb-1 text-muted">por {{ libro.autor }}</p>
+                    <p class="mb-0"><strong>{{ libro.numero_paginas }}</strong> páginas totales</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Estado de lectura -->
+                    <div class="mb-4">
+                        <label for="{{ form.estado.id_for_label }}" class="form-label">
+                            <strong>Estado de Lectura:</strong>
+                        </label>
+                        {{ form.estado }}
+                        {% if form.estado.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.estado.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Páginas leídas -->
+                    <div class="mb-4">
+                        <label for="{{ form.paginas_leidas.id_for_label }}" class="form-label">
+                            <strong>Páginas Leídas:</strong>
+                        </label>
+                        <div class="input-group">
+                            {{ form.paginas_leidas }}
+                            <span class="input-group-text">de {{ libro.numero_paginas }}</span>
+                        </div>
+                        {% if form.paginas_leidas.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.paginas_leidas.errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Barra de progreso -->
+                        <div class="mt-2">
+                            <div class="progress" style="height: 15px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     id="progress-bar"
+                                     style="width: 0%;">
+                                </div>
+                            </div>
+                            <small class="text-muted" id="progress-text">0% completado</small>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            {% if historial_existente %}
+                            Actualizar Progreso
+                            {% else %}
+                            Guardar Registro
+                            {% endif %}
+                        </button>
+                        <!-- CORREGIDO: Agregar sril: al namespace -->
+                        <a href="{% url 'sril:detalle_libro' libro.id %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paginasInput = document.getElementById('{{ form.paginas_leidas.id_for_label }}');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const totalPaginas = {{ libro.numero_paginas }};
+    
+    function updateProgress() {
+        const paginasLeidas = parseInt(paginasInput.value) || 0;
+        const porcentaje = Math.min((paginasLeidas / totalPaginas) * 100, 100);
+        
+        progressBar.style.width = porcentaje + '%';
+        progressText.textContent = porcentaje.toFixed(1) + '% completado';
+        
+        // Cambiar color según el progreso
+        if (porcentaje >= 100) {
+            progressBar.className = 'progress-bar bg-success';
+        } else if (porcentaje >= 50) {
+            progressBar.className = 'progress-bar bg-warning';
+        } else {
+            progressBar.className = 'progress-bar bg-primary';
+        }
+    }
+    
+    // Actualizar al cargar y al cambiar el valor
+    updateProgress();
+    paginasInput.addEventListener('input', updateProgress);
+    
+    // Validar que no exceda el total de páginas
+    paginasInput.addEventListener('change', function() {
+        if (parseInt(this.value) > totalPaginas) {
+            this.value = totalPaginas;
+            updateProgress();
+        }
+    });
+});
+</script>
+{% endblock %}

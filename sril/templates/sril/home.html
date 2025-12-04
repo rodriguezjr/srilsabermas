@@ -1,0 +1,112 @@
+<!-- sril/templates/sril/home.html -->
+{% extends 'sril/base.html' %}
+
+{% block title %}Inicio - Sistema de Recomendación{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 text-center mb-5">
+        <h1 class="display-4">Bienvenido a SaberMas</h1>
+        <p class="lead">Descubre tu próximo libro favorito</p>
+        
+        <!-- Barra de búsqueda -->
+        <form method="get" action="{% url 'sril:lista_libros' %}" class="row g-3 justify-content-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Buscar libros por título, autor o ISBN...">
+                    <button class="btn btn-primary" type="submit">Buscar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Libros destacados -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="mb-4">Libros Destacados</h2>
+        <div class="row">
+            {% for libro in libros_destacados %}
+            <div class="col-md-3 mb-4">
+                <div class="card book-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ libro.titulo }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ libro.autor }}</h6>
+                        <p class="card-text small">
+                            <span class="rating-stars">
+                                {% with rating=libro.avg_rating|default:0 %}
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= rating %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                                ({{ rating|floatformat:1 }})
+                            </span>
+                        </p>
+                        <p class="card-text small text-muted">
+                            {{ libro.numero_paginas }} páginas<br>
+                            {{ libro.tiempo_lectura_promedio }} min aprox.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{% url 'sril:detalle_libro' libro.id %}" class="btn btn-sm btn-outline-primary">Ver Detalles</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No hay libros destacados disponibles en este momento.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Acciones rápidas -->
+{% if user.is_authenticated %}
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Mis Preferencias</h5>
+                <p class="card-text">Personaliza tus gustos literarios</p>
+                <a href="{% url 'sril:mis_preferencias' %}" class="btn btn-primary">Gestionar</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Explorar</h5>
+                <p class="card-text">Descubre todos nuestros libros</p>
+                <a href="{% url 'sril:lista_libros' %}" class="btn btn-outline-primary">Ver Catálogo</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Recomendaciones</h5>
+                <p class="card-text">Libros basados en tus gustos</p>
+                <a href="{% url 'sril:lista_libros' %}" class="btn btn-outline-success">Ver Recomendaciones</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12 text-center">
+        <div class="alert alert-warning">
+            <h4>¡Únete a nuestra comunidad!</h4>
+            <p>Inicia sesión para obtener recomendaciones personalizadas y guardar tu progreso de lectura.</p>
+            <a href="{% url 'sril:login' %}" class="btn btn-primary">Iniciar Sesión</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

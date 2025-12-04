@@ -1,0 +1,143 @@
+<!-- sril/templates/sril/usuarios/mis_preferencias.html -->
+{% extends 'sril/base.html' %}
+
+{% block title %}Mis Preferencias - SaberMas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Mis Preferencias Literarias</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Configura tus preferencias para recibir recomendaciones personalizadas de libros.
+                </p>
+
+                <!-- Formulario para agregar preferencias -->
+                <div class="mb-5">
+                    <h5>Agregar Nueva Preferencia</h5>
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-6">
+                            <label for="{{ form.categoria.id_for_label }}" class="form-label">Categoría</label>
+                            {{ form.categoria }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.nivel_interes.id_for_label }}" class="form-label">Nivel de Interés</label>
+                            {{ form.nivel_interes }}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Agregar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Lista de preferencias actuales -->
+                <h5>Mis Preferencias Actuales</h5>
+                {% if preferencias %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Categoría</th>
+                                <th>Nivel de Interés</th>
+                                <th>Última Actualización</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for preferencia in preferencias %}
+                            <tr>
+                                <td>
+                                    <strong>{{ preferencia.categoria.nombre }}</strong>
+                                    {% if preferencia.categoria.descripcion %}
+                                    <br><small class="text-muted">{{ preferencia.categoria.descripcion }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="rating-stars me-2">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= preferencia.nivel_interes %}
+                                                    ★
+                                                {% else %}
+                                                    ☆
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span>({{ preferencia.nivel_interes }}/5)</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ preferencia.fecha_actualizacion|date:"d M Y" }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <form method="post" action="{% url 'sril:mis_preferencias' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="eliminar_id" value="{{ preferencia.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                onclick="return confirm('¿Eliminar esta preferencia?')">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">Aún no has configurado tus preferencias. ¡Agrega algunas para obtener mejores recomendaciones!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Estadísticas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Mis Estadísticas</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Preferencias configuradas:</strong> {{ preferencias.count }}</p>
+                <p><strong>Categorías disponibles:</strong> {{ categorias.count }}</p>
+                
+                {% if preferencias %}
+                <div class="mt-3">
+                    <h6>Top Categorías:</h6>
+                    {% for preferencia in preferencias|slice:":3" %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ preferencia.categoria.nombre }}</span>
+                        <span class="badge bg-primary">{{ preferencia.nivel_interes }}/5</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Información -->
+        <div class="card">
+            <div class="card-body">
+                <h6>¿Cómo funcionan las preferencias?</h6>
+                <p class="small text-muted">
+                    Tus preferencias nos ayudan a recomendarte libros que se alineen con tus gustos literarios. 
+                    Cuanto más específico seas, mejores recomendaciones recibirás.
+                </p>
+                <ul class="small text-muted">
+                    <li><strong>1 estrella:</strong> Poco interés</li>
+                    <li><strong>3 estrellas:</strong> Interés moderado</li>
+                    <li><strong>5 estrellas:</strong> Mucho interés</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

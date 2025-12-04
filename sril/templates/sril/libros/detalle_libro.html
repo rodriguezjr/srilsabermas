@@ -1,0 +1,465 @@
+{% extends 'sril/base.html' %}
+
+{% block title %}{{ libro.titulo }} - SaberMas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Columna izquierda: Portada e información básica -->
+    <div class="col-md-4">
+        <!-- Portada del libro -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                {% if libro.portada %}
+                    <img src="{{ libro.portada.url }}" 
+                         alt="Portada de {{ libro.titulo }}" 
+                         class="img-fluid rounded shadow" 
+                         style="max-height: 400px; width: auto;">
+                {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                         style="height: 400px; margin: 0 auto;">
+                        <div class="text-center">
+                            <span class="display-1 text-muted">📚</span>
+                            <p class="text-muted mt-2">Sin portada</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Información rápida -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">📋 Información Rápida</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">📖 Páginas</small>
+                        <div class="fw-bold">{{ libro.numero_paginas }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">⏱️ Tiempo</small>
+                        <div class="fw-bold">{{ libro.tiempo_lectura_formateado }}</div>
+                    </div>
+                </div>
+                <hr class="my-2">
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">⭐ Rating</small>
+                        <div class="fw-bold">{{ libro.rating_promedio }}/5.0</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">📅 Año</small>
+                        <div class="fw-bold">{{ libro.fecha_publicacion.year|default:"N/A" }}</div>
+                    </div>
+                </div>
+                {% if libro.editorial %}
+                <hr class="my-2">
+                <div class="row">
+                    <div class="col-12">
+                        <small class="text-muted">🏢 Editorial</small>
+                        <div class="fw-bold">{{ libro.editorial }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna derecha: Información detallada -->
+    <div class="col-md-8">
+        <!-- Información principal del libro -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h1 class="card-title h2 mb-1">{{ libro.titulo }}</h1>
+                        <h2 class="card-subtitle h4 text-muted mb-3">por {{ libro.autor }}</h2>
+                    </div>
+                    <div class="text-end">
+                        <!-- Rating promedio con estrellas -->
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="rating-stars fs-5 me-2">
+                                {% with rating=libro.rating_promedio %}
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= rating %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            </span>
+                            <span class="fw-bold">{{ libro.rating_promedio }}/5.0</span>
+                        </div>
+                        <small class="text-muted">
+                            {% with count=libro.puntuaciones.count %}
+                                {{ count }} puntuación{{ count|pluralize:"es" }}
+                            {% endwith %}
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Categorías -->
+                {% if libro.categorias.all %}
+                <div class="mb-3">
+                    <strong>Categorías:</strong>
+                    {% for categoria in libro.categorias.all %}
+                        <span class="badge bg-primary me-1">{{ categoria.nombre }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- ISBN -->
+                {% if libro.isbn %}
+                <div class="mb-3">
+                    <strong>ISBN:</strong> <code>{{ libro.isbn }}</code>
+                </div>
+                {% endif %}
+
+                <!-- Sinopsis -->
+                {% if libro.sinopsis %}
+                <div class="mb-4">
+                    <h5>📖 Sinopsis</h5>
+                    <p class="text-justify" style="line-height: 1.6;">{{ libro.sinopsis|linebreaks }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sección de Descarga -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">📥 Descargar Libro</h5>
+            </div>
+            <div class="card-body">
+                {% if libro.archivo_pdf and libro.disponible_descarga %}
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <h6>📊 Información del Archivo</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Archivo:</strong></td>
+                                            <td>{{ libro.nombre_archivo }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Tamaño:</strong></td>
+                                            <td>{{ libro.tamaño_archivo }} MB</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Páginas:</strong></td>
+                                            <td>{{ libro.numero_paginas }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Tiempo lectura:</strong></td>
+                                            <td>{{ libro.tiempo_lectura_formateado }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Subido:</strong></td>
+                                            <td>{{ libro.fecha_creacion|date:"d M Y" }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'sril:descargar_libro' libro.id %}" 
+                                   class="btn btn-success btn-lg" 
+                                   onclick="return confirm('¿Estás seguro de que quieres descargar \"{{ libro.titulo }}\"?')">
+                                    ⬇️ Descargar PDF
+                                </a>
+                                <a href="{% url 'sril:ver_libro' libro.id %}" 
+                                   class="btn btn-primary" 
+                                   target="_blank">
+                                    👁️ Ver en Navegador
+                                </a>
+                                <a href="{% url 'sril:info_descarga' libro.id %}" 
+                                   class="btn btn-outline-info btn-sm">
+                                    ℹ️ Más Información
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información adicional -->
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <small class="text-muted">
+                            💡 <strong>Consejo:</strong> 
+                            Usa "Ver en Navegador" para leer online o "Descargar PDF" para guardar una copia.
+                            {% if libro.numero_paginas > 100 %}
+                            Este libro tiene {{ libro.numero_paginas }} páginas, considera leerlo en varias sesiones.
+                            {% endif %}
+                        </small>
+                    </div>
+                    
+                {% elif libro.archivo_pdf and not libro.disponible_descarga %}
+                    <div class="alert alert-warning">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <span class="fs-4">⚠️</span>
+                            </div>
+                            <div>
+                                <h6 class="alert-heading">Descarga No Disponible</h6>
+                                <p class="mb-2">Este libro tiene archivo pero no está disponible para descarga pública.</p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <ul class="list-unstyled mb-0">
+                                            <li><strong>Archivo:</strong> {{ libro.nombre_archivo }}</li>
+                                            <li><strong>Tamaño:</strong> {{ libro.tamaño_archivo }} MB</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul class="list-unstyled mb-0">
+                                            <li><strong>Páginas:</strong> {{ libro.numero_paginas }}</li>
+                                            <li><strong>Formato:</strong> PDF</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <span class="fs-4">📚</span>
+                            </div>
+                            <div>
+                                <h6 class="alert-heading">Libro No Digitalizado</h6>
+                                <p class="mb-2">Este libro no tiene versión digital disponible para descarga.</p>
+                                {% if user.es_administrador %}
+                                    <a href="{% url 'mi_biblioteca_admin:sril_libro_change' libro.id %}" 
+                                       class="btn btn-warning btn-sm mt-1">
+                                        ⚙️ Subir PDF en Admin
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Acciones del Usuario -->
+        {% if user.is_authenticated %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">👤 Mis Acciones</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Puntuación del usuario -->
+                    <div class="col-md-6 mb-3">
+                        <h6>⭐ Mi Puntuación</h6>
+                        {% if puntuacion_usuario %}
+                        <div class="p-3 bg-light rounded">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="rating-stars fs-5 me-2">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= puntuacion_usuario.puntuacion %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                <span class="fw-bold">{{ puntuacion_usuario.puntuacion }}/5.0</span>
+                            </div>
+                            {% if puntuacion_usuario.comentario %}
+                            <p class="mb-0 small">{{ puntuacion_usuario.comentario }}</p>
+                            {% endif %}
+                            <a href="{% url 'sril:puntuar_libro' libro.id %}" class="btn btn-outline-primary btn-sm mt-2">
+                                ✏️ Editar Puntuación
+                            </a>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-2">Aún no has puntuado este libro.</p>
+                        <a href="{% url 'sril:puntuar_libro' libro.id %}" class="btn btn-primary btn-sm">
+                            ⭐ Puntuar este Libro
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Historial de lectura -->
+                    <div class="col-md-6 mb-3">
+                        <h6>📖 Mi Progreso</h6>
+                        {% if historial_usuario %}
+                        <div class="p-3 bg-light rounded">
+                            <div class="mb-2">
+                                <strong>Estado:</strong> 
+                                <span class="badge 
+                                    {% if historial_usuario.estado == 'TERMINADO' %}bg-success
+                                    {% elif historial_usuario.estado == 'LEYENDO' %}bg-warning
+                                    {% elif historial_usuario.estado == 'ABANDONADO' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ historial_usuario.get_estado_display }}
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Páginas leídas:</strong> {{ historial_usuario.paginas_leidas }}/{{ libro.numero_paginas }}
+                            </div>
+                            <div class="progress mb-2" style="height: 12px;">
+                                <div class="progress-bar 
+                                    {% if historial_usuario.estado == 'TERMINADO' %}bg-success
+                                    {% elif historial_usuario.estado == 'LEYENDO' %}bg-warning
+                                    {% elif historial_usuario.estado == 'ABANDONADO' %}bg-danger
+                                    {% else %}bg-primary{% endif %}" 
+                                    role="progressbar" 
+                                    style="width: {{ historial_usuario.porcentaje_lectura }}%;">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ historial_usuario.porcentaje_lectura|floatformat:1 }}% completado</small>
+                            <a href="{% url 'sril:gestionar_historial' libro.id %}" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                                📊 Actualizar Progreso
+                            </a>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-2">Aún no has registrado tu lectura.</p>
+                        <a href="{% url 'sril:gestionar_historial' libro.id %}" class="btn btn-outline-primary btn-sm">
+                            📖 Registrar Lectura
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Mensaje para usuarios no autenticados -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <div class="py-4">
+                    <span class="display-4">🔒</span>
+                    <h5 class="mt-3">Inicia sesión para más funcionalidades</h5>
+                    <p class="text-muted mb-3">
+                        Al iniciar sesión podrás puntuar libros, registrar tu progreso de lectura y recibir recomendaciones personalizadas.
+                    </p>
+                    <a href="{% url 'sril:login' %}?next={{ request.path }}" class="btn btn-primary me-2">
+                        Iniciar Sesión
+                    </a>
+                    <a href="{% url 'sril:registro' %}" class="btn btn-outline-primary">
+                        Crear Cuenta
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Puntuaciones recientes -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">⭐ Puntuaciones Recientes</h5>
+            </div>
+            <div class="card-body">
+                {% if puntuaciones_recientes %}
+                    {% for puntuacion in puntuaciones_recientes %}
+                    <div class="border-bottom pb-3 mb-3 {% if forloop.last %}border-bottom-0 pb-0 mb-0{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong>{{ puntuacion.usuario.nombre }}</strong>
+                                <span class="rating-stars ms-2">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= puntuacion.puntuacion %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="text-muted ms-1">({{ puntuacion.puntuacion }})</span>
+                                </span>
+                            </div>
+                            <small class="text-muted">{{ puntuacion.fecha_puntuacion|date:"d M Y" }}</small>
+                        </div>
+                        {% if puntuacion.comentario %}
+                        <p class="mb-0 text-justify">{{ puntuacion.comentario }}</p>
+                        {% else %}
+                        <p class="mb-0 text-muted fst-italic">Sin comentario</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    {% if libro.puntuaciones.count > 5 %}
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Mostrando las 5 más recientes de {{ libro.puntuaciones.count }} puntuaciones
+                        </small>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        <span class="fs-1">🌱</span><br>
+                        Aún no hay puntuaciones para este libro.<br>
+                        <small>Sé el primero en puntuar!</small>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Libros similares (placeholder para futuras recomendaciones) -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📚 Libros Similares</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center py-4">
+                    <span class="display-4 text-muted">🔍</span>
+                    <p class="text-muted mt-3">
+                        Próximamente: Sistema de recomendación de libros similares basado en tus preferencias y historial de lectura.
+                    </p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'sril:mis_preferencias' %}" class="btn btn-outline-primary btn-sm">
+                            🎯 Configurar Mis Preferencias
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.rating-stars {
+    color: #ffc107;
+    letter-spacing: 2px;
+}
+
+.book-cover {
+    transition: transform 0.3s ease;
+}
+
+.book-cover:hover {
+    transform: scale(1.05);
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.table-sm td {
+    padding: 0.3rem 0.5rem;
+}
+
+.text-justify {
+    text-align: justify;
+    text-justify: inter-word;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'sril/base.html' %}
+
+{% block title %}Registro - SaberMas{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center mb-0">Únete a SaberMas</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Campo Email -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.email.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campo Nombre -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre Completo</label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.nombre.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Campo Contraseña -->
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">Contraseña</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.password1.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <ul class="small">
+                                <li>Tu contraseña no puede ser demasiado similar a tu información personal.</li>
+                                <li>Tu contraseña debe contener al menos 8 caracteres.</li>
+                                <li>Tu contraseña no puede ser una contraseña común.</li>
+                                <li>Tu contraseña no puede ser entirely numérica.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Campo Confirmar Contraseña -->
+                    <div class="mb-4">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirmar Contraseña</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.password2.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Botón de envío -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Crear Cuenta</button>
+                    </div>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <p class="mb-2">¿Ya tienes una cuenta?</p>
+                    <a href="{% url 'sril:login' %}" class="btn btn-outline-secondary">Inicia Sesión aquí</a>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <small class="text-muted">
+                        Al registrarte, aceptas nuestros 
+                        <a href="#">Términos de Servicio</a> y 
+                        <a href="#">Política de Privacidad</a>.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

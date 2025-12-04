@@ -1,0 +1,88 @@
+{% extends 'sril/base.html' %}
+
+{% block title %}Información de Descarga - {{ libro.titulo }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">📊 Información de Descarga</h3>
+            </div>
+            <div class="card-body">
+                <!-- Información del libro -->
+                <div class="row mb-4">
+                    <div class="col-md-3 text-center">
+                        {% if libro.portada %}
+                            <img src="{{ libro.portada.url }}" alt="{{ libro.titulo }}" 
+                                 class="img-fluid rounded" style="max-height: 200px;">
+                        {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                 style="height: 200px; width: 150px; margin: 0 auto;">
+                                <span class="text-muted">📚</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <h4>{{ libro.titulo }}</h4>
+                        <h5 class="text-muted">por {{ libro.autor }}</h5>
+                    </div>
+                </div>
+
+                <!-- Detalles técnicos -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>📋 Detalles del Libro</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>ISBN:</strong> {{ libro.isbn|default:"No disponible" }}</li>
+                            <li><strong>Editorial:</strong> {{ libro.editorial|default:"No disponible" }}</li>
+                            <li><strong>Año:</strong> {{ libro.fecha_publicacion.year|default:"No disponible" }}</li>
+                            <li><strong>Páginas:</strong> {{ libro.numero_paginas }}</li>
+                            <li><strong>Categorías:</strong>
+                                {% for cat in libro.categorias.all %}
+                                    <span class="badge bg-secondary">{{ cat.nombre }}</span>
+                                {% endfor %}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>📁 Información del Archivo</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Nombre:</strong> {{ libro.nombre_archivo }}</li>
+                            <li><strong>Tamaño:</strong> {{ libro.tamaño_archivo }} MB</li>
+                            <li><strong>Formato:</strong> PDF</li>
+                            <li><strong>Subido:</strong> {{ libro.fecha_creacion|date:"d M Y H:i" }}</li>
+                            <li><strong>Actualizado:</strong> {{ libro.fecha_actualizacion|date:"d M Y H:i" }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tiempo de lectura estimado -->
+                <div class="alert alert-info mt-3">
+                    <h6>⏱️ Tiempo de Lectura Estimado</h6>
+                    <p class="mb-0">
+                        Basado en {{ libro.numero_paginas }} páginas, el tiempo estimado de lectura es de 
+                        <strong>{{ libro.tiempo_lectura_promedio }} minutos</strong> 
+                        (aproximadamente {{ libro.tiempo_lectura_promedio|divisibleby:60|yesno:"horas,minutos" }}).
+                    </p>
+                </div>
+
+                <!-- Acciones -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'sril:detalle_libro' libro.id %}" class="btn btn-outline-secondary me-md-2">
+                        ← Volver al Libro
+                    </a>
+                    {% if libro.puede_descargar %}
+                        <a href="{% url 'sril:descargar_libro' libro.id %}" class="btn btn-success">
+                            ⬇️ Descargar Ahora
+                        </a>
+                        <a href="{% url 'sril:ver_libro' libro.id %}" class="btn btn-primary" target="_blank">
+                            👁️ Ver Online
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
