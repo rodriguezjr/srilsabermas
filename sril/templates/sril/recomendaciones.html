@@ -6,62 +6,140 @@
 <div class="row">
     <div class="col-12">
         <h1 class="mb-4">Recomendaciones para ti</h1>
-        <p class="lead">Libros seleccionados basados en tus preferencias e historial de lectura</p>
-        
+
+        <!-- SECCIÓN 1: RECOMENDADO PARA TI (basado en preferencias) -->
+        <h2 class="h3 mb-3 text-primary">Basado en nuestro algortimo de Filtrado Colaborativo</h2>
+        <p class="text-muted mb-4">Libros seleccionados que se ajustan a tus gustos.</p>
+
         {% if libros_recomendados %}
-        <div class="row">
+        <div class="row mb-5">
             {% for libro in libros_recomendados %}
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                <div class="card book-card h-100">
+                <div class="card book-card h-100 shadow-sm border-0">
+                    <!-- Portada -->
+                    <div class="position-relative" style="height: 200px; overflow: hidden; background-color: #f8f9fa;">
+                        {% if libro.portada %}
+                        <img src="{{ libro.portada.url }}" class="card-img-top h-100 w-100" style="object-fit: cover;"
+                            alt="{{ libro.titulo }}">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 w-100 text-muted">
+                            <span class="fs-1">📚</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
                     <div class="card-body">
-                        <h5 class="card-title">{{ libro.titulo }}</h5>
+                        <h5 class="card-title text-truncate" title="{{ libro.titulo }}">{{ libro.titulo }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ libro.autor }}</h6>
-                        
+
                         <!-- Categorías -->
                         <div class="mb-2">
                             {% for cat in libro.categorias.all %}
-                                <span class="badge bg-primary me-1 small">{{ cat.nombre }}</span>
+                            <span class="badge bg-primary me-1 small">{{ cat.nombre }}</span>
                             {% endfor %}
                         </div>
-                        
+
                         <p class="card-text small">
-                            <span class="rating-stars">
+                            <span class="rating-stars text-warning">
                                 {% with rating=libro.avg_rating|default:0 %}
-                                    {% for i in "12345" %}
-                                        {% if forloop.counter <= rating %}
-                                            ★
-                                        {% else %}
-                                            ☆
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endwith %}
-                                ({{ libro.avg_rating|default:0|floatformat:1 }})
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= rating %} ★ {% else %} ☆ {% endif %} {% endfor %} {% endwith %}
+                                    <span class="text-muted">({{ libro.avg_rating|default:0|floatformat:1 }})</span>
                             </span>
                         </p>
-                        
+
                         <p class="card-text small text-muted">
-                            {{ libro.numero_paginas }} páginas<br>
-                            {{ libro.tiempo_lectura_promedio }} min
+                            <i class="bi bi-book"></i> {{ libro.numero_paginas }} págs |
+                            <i class="bi bi-clock"></i> {{ libro.tiempo_lectura_promedio }} min
                         </p>
                     </div>
-                    <div class="card-footer bg-transparent">
-                        <a href="{% url 'sril:detalle_libro' libro.id %}" class="btn btn-sm btn-primary">Ver Detalles</a>
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'sril:puntuar_libro' libro.id %}" class="btn btn-sm btn-outline-secondary">Puntuar</a>
-                        {% endif %}
+                    <div class="card-footer bg-transparent border-top-0">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'sril:detalle_libro' libro.id %}" class="btn btn-sm btn-primary">Ver
+                                Detalles</a>
+                            {% if user.is_authenticated %}
+                            <a href="{% url 'sril:puntuar_libro' libro.id %}"
+                                class="btn btn-sm btn-outline-secondary">Puntuar</a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="alert alert-info">
-            <h4>¡Configura tus preferencias!</h4>
-            <p>Para obtener recomendaciones personalizadas, primero configura tus preferencias literarias.</p>
-            <a href="{% url 'sril:mis_preferencias' %}" class="btn btn-primary">Configurar Preferencias</a>
-            <a href="{% url 'sril:lista_libros' %}" class="btn btn-outline-primary">Explorar Todos los Libros</a>
+        <div class="alert alert-info mb-5 shadow-sm">
+            <h4 class="alert-heading"><i class="bi bi-info-circle"></i> ¡Configura tus preferencias!</h4>
+            <p>No tenemos suficientes datos para recomendarte libros personalizados.</p>
+            <hr>
+            <p class="mb-0">Configura tus categorías favoritas que nuestro algortimo de filtrado colaborativo elija los
+                mejores libros para ti.</p>
+            <div class="mt-3">
+                <a href="{% url 'sril:mis_preferencias' %}" class="btn btn-primary">Configurar Preferencias</a>
+            </div>
         </div>
         {% endif %}
+
+        <!-- SECCIÓN 2: PODRÍA GUSTARTE (sugerencias generales) -->
+        <h2 class="h3 mb-3 text-secondary mt-4">Podría gustarte</h2>
+        <p class="text-muted mb-4">Sugerencias basadas en usuarios con perfiles similares.</p>
+
+        <div class="row">
+            {% for libro in libros_sugeridos %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card book-card h-100 shadow-sm border-0">
+                    <!-- Portada -->
+                    <div class="position-relative" style="height: 200px; overflow: hidden; background-color: #f8f9fa;">
+                        {% if libro.portada %}
+                        <img src="{{ libro.portada.url }}" class="card-img-top h-100 w-100" style="object-fit: cover;"
+                            alt="{{ libro.titulo }}">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 w-100 text-muted">
+                            <span class="fs-1">📚</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title text-truncate" title="{{ libro.titulo }}">{{ libro.titulo }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ libro.autor }}</h6>
+
+                        <!-- Categorías -->
+                        <div class="mb-2">
+                            {% for cat in libro.categorias.all %}
+                            <span class="badge bg-secondary me-1 small">{{ cat.nombre }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <p class="card-text small">
+                            <span class="rating-stars text-warning">
+                                {% with rating=libro.avg_rating|default:0 %}
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= rating %} ★ {% else %} ☆ {% endif %} {% endfor %} {% endwith %}
+                                    <span class="text-muted">({{ libro.avg_rating|default:0|floatformat:1 }})</span>
+                            </span>
+                        </p>
+
+                        <p class="card-text small text-muted">
+                            <i class="bi bi-book"></i> {{ libro.numero_paginas }} págs |
+                            <i class="bi bi-clock"></i> {{ libro.tiempo_lectura_promedio }} min
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'sril:detalle_libro' libro.id %}" class="btn btn-sm btn-outline-primary">Ver
+                                Detalles</a>
+                            {% if user.is_authenticated %}
+                            <a href="{% url 'sril:puntuar_libro' libro.id %}"
+                                class="btn btn-sm btn-outline-secondary">Puntuar</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
     </div>
 </div>
 
@@ -72,8 +150,9 @@
             <div class="card-body">
                 <h5>¿Cómo funcionan nuestras recomendaciones?</h5>
                 <p class="mb-0">
-                    Nuestro sistema analiza tus preferencias de categorías, tu historial de lectura 
-                    y las puntuaciones que has dado a otros libros para sugerirte lecturas que 
+                    Nuestro sistema se basa en un algoritmo de filtrado colaborativo, analizando tus preferencias de
+                    categorías, tu historial de lectura y las puntuaciones que has dado a otros libros para sugerirte
+                    lecturas que
                     probablemente disfrutarás.
                 </p>
             </div>

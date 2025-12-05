@@ -120,11 +120,23 @@ def detalle_libro(request, libro_id):
     # Puntuaciones recientes
     puntuaciones_recientes = libro.puntuaciones.select_related('usuario').order_by('-fecha_puntuacion')[:5]
     
+    # Libros similares (misma categoría)
+    libros_similares = Libro.objects.filter(
+        categorias__in=libro.categorias.all(),
+        activo=True
+    ).exclude(
+        id=libro.id
+    ).distinct().annotate(
+        avg_rating=Avg('puntuaciones__puntuacion'),
+        num_ratings=Count('puntuaciones')
+    ).order_by('-avg_rating')[:4]
+    
     context = {
         'libro': libro,
         'puntuacion_usuario': puntuacion_usuario,
         'historial_usuario': historial_usuario,
         'puntuaciones_recientes': puntuaciones_recientes,
+        'libros_similares': libros_similares,
     }
     return render(request, 'sril/libros/detalle_libro.html', context)
 
@@ -243,42 +255,6 @@ def mis_preferencias(request):
 @login_required
 def recomendaciones(request):
     """Sistema de recomendación basado en preferencias del usuario"""
-    # Obtener preferencias del usuario
-    preferencias_usuario = PreferenciaUsuario.objects.filter(
-        usuario=request.user, 
-        nivel_interes__gte=3  # Solo categorías con interés >= 3
-    ).values_list('categoria_id', flat=True)
-    
-    # Libros recomendados basados en preferencias
-    libros_recomendados = Libro.objects.filter(
-        categorias__id__in=preferencias_usuario,
-        activo=True
-    ).distinct().annotate(
-        avg_rating=Avg('puntuaciones__puntuacion'),
-        num_ratings=Count('puntuaciones')
-    ).order_by('-avg_rating')[:12]
-    
-    # Si no hay suficientes recomendaciones, agregar libros populares
-    if len(libros_recomendados) < 8:
-        libros_populares = Libro.objects.filter(
-            activo=True
-        ).annotate(
-            avg_rating=Avg('puntuaciones__puntuacion'),
-            num_ratings=Count('puntuaciones')
-        ).exclude(
-            id__in=[libro.id for libro in libros_recomendados]
-        ).order_by('-avg_rating')[:12-len(libros_recomendados)]
-        
-        libros_recomendados = list(libros_recomendados) + list(libros_populares)
-    
-    context = {
-        'libros_recomendados': libros_recomendados,
-    }
-    return render(request, 'sril/recomendaciones.html', context)
-
-@login_required
-def recomendaciones(request):
-    """Sistema de recomendación basado en preferencias del usuario"""
     usuario_actual = get_usuario_actual(request)
     
     if not usuario_actual:
@@ -298,23 +274,21 @@ def recomendaciones(request):
     ).distinct().annotate(
         avg_rating=Avg('puntuaciones__puntuacion'),
         num_ratings=Count('puntuaciones')
-    ).order_by('-avg_rating')[:12]
+    ).order_by('-avg_rating')[:8]
     
-    # Si no hay suficientes recomendaciones, agregar libros populares
-    if len(libros_recomendados) < 8:
-        libros_populares = Libro.objects.filter(
-            activo=True
-        ).annotate(
-            avg_rating=Avg('puntuaciones__puntuacion'),
-            num_ratings=Count('puntuaciones')
-        ).exclude(
-            id__in=[libro.id for libro in libros_recomendados]
-        ).order_by('-avg_rating')[:12-len(libros_recomendados)]
-        
-        libros_recomendados = list(libros_recomendados) + list(libros_populares)
+    # Libros sugeridos (populares/general)
+    libros_sugeridos = Libro.objects.filter(
+        activo=True
+    ).annotate(
+        avg_rating=Avg('puntuaciones__puntuacion'),
+        num_ratings=Count('puntuaciones')
+    ).exclude(
+        id__in=[libro.id for libro in libros_recomendados]
+    ).order_by('-avg_rating')[:12]
     
     context = {
         'libros_recomendados': libros_recomendados,
+        'libros_sugeridos': libros_sugeridos,
     }
     return render(request, 'sril/recomendaciones.html', context)
 
